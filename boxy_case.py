@@ -20,7 +20,7 @@ p_pcb_wall_thickness = 0.0 # thickness of walls around pcb inset
 p_fastener_width = pcb_w * 0.5 # width of fasteners
 
 # Cover params
-p_screen_th = 1.5 # thickness of screen (including adhesive tape)
+p_screen_th = 1.2 # thickness of screen (including adhesive tape)
 p_top_sheet_th = 0.6 # thickness of top "cover sheet" - should be as thin as possible
 p_screen_from_pcb_top = 4.0
 p_screen_h = 38.0
@@ -88,6 +88,12 @@ ishell = (ishell.edges("|Z")
 
 #make the box outer box
 box = oshell.cut(ishell)
+# Emboss initials
+box = (box
+  .faces(cq.NearestToPointSelector((0,0,p_thickness)))
+  .workplane()
+  .text("GD", 5, -0.3, cut=True, kind='bold', font='Courier')
+)
 
 # Top strap hole
 tbar_hole_depth = 1.5
@@ -190,29 +196,32 @@ with_inset = with_side_holes.cut(pcb_inset)
 fastener_hole_point = (0, p_outerHeight * 0.75 - 0.2)
 poleCenters = [(0, pcb_h / 2.0 - pcb_y_to_slot - pcb_slot_h / 2.0), (0, -(pcb_h / 2.0 - pcb_y_to_slot - pcb_slot_h / 2.0))]
 screen_window_size = p_screen_w - 2.0 * p_screen_margin
+pole_hole_depth = p_outerHeight / 2.0
 
+# basic shape
 top = (cq.Workplane("XY")
   .workplane(offset=p_outerHeight)
   .rect(pcb_inset_width, pcb_inset_height)
   .extrude(top_th)
   .edges("|Z")
   .fillet(pcb_radius)
-  
-   # poles
-  .faces("<Z")
+)  
+# poles
+top = (top.faces("<Z")
   .workplane(offset=0)
   .pushPoints(poleCenters)
   .rect(p_fastener_width, p_thickness)
-  .extrude(+(p_outerHeight / 2.0 + 0.1 ))
+  .extrude(pole_hole_depth)
   .faces(">Y")
   .workplane(origin=(0, 0, 0), offset=0.0)
   .pushPoints( [ fastener_hole_point])
   .hole(p_screwpostID, p_outerLength)
-   # screen holes
-   # inset
-  .faces(">Z")
+)
+# screen holes
+top = (top.faces(">Z")
+  # inset
   .workplane(origin=(0, pcb_inset_height/2.0 - p_screen_from_pcb_top - p_screen_h / 2.0, 0),offset=-p_top_sheet_th)
-  .rect(p_screen_w, p_screen_h)
+  .rect(p_screen_w + p_tolerance, p_screen_h)
   .cutBlind(-p_screen_th)
    # window
   .faces(">Z")
@@ -222,13 +231,25 @@ top = (cq.Workplane("XY")
   .edges(">Z")
   .fillet(0.5)
 )
-# debug(top)
 
-poll_holes = (cq.Workplane("XY")
+# decorations
+top = (top.faces(">Z")
+  .workplane(origin=(0, 0, 0), offset=0)
+  .pushPoints( [ 
+    (0, -pcb_inset_height/2.0, 0),
+    (0, pcb_inset_height/2.0, 0)
+  ])
+  .rect(p_strap_width ,5.0)
+  .cutBlind(-0.4, taper=60)
+)
+
+debug(top)
+
+pole_holes = (cq.Workplane("XY")
   .workplane(offset=p_outerHeight)
   .pushPoints(poleCenters)
   .rect(p_fastener_width + p_tolerance, p_thickness + p_tolerance)
-  .extrude(-(p_outerHeight / 2.0 + 0.1 - 0.5 + p_tolerance / 2.0))
+  .extrude(-(pole_hole_depth  + p_tolerance / 2.0))
 )
 
 with_top_holes = (with_inset
@@ -242,13 +263,13 @@ with_top_holes = (with_inset
   .pushPoints( [ fastener_hole_point])
   #.hole(p_screwpostID, p_outerLength)
   .cboreHole(p_screwpostID, p_boreDiameter, p_boreDepth)
-  .cut(poll_holes) 
+  .cut(pole_holes) 
 )
 
 if True:
   top = (top
-    .translate((-p_outerWidth - 1.0, 0, -(p_outerHeight / 2.0 - 1.0)))
-    #.rotateAboutCenter((0,1,0), 180)
+    .translate((-p_outerWidth - 1.0, 0, -(p_outerHeight+top_th)))
+    .rotate((0,0,0),(0,1,0), 180)
 )
   
 result = (with_top_holes
@@ -257,4 +278,5 @@ result = (with_top_holes
 
 #return the combined result
 show_object(result)
+cq.exporters.export(top, "boxy-top-only.stl")
 cq.exporters.export(result, "boxy-top.stl")
