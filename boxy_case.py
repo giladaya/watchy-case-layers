@@ -26,6 +26,7 @@ p_screen_from_pcb_top = 4.0
 p_screen_h = 38.0
 p_screen_w = 32.0
 p_screen_margin = 1.5
+p_flipTop = True # should flip the top
 
 top_th = p_screen_th + p_top_sheet_th
 
@@ -243,6 +244,12 @@ top = (top.faces(">Z")
   .cutBlind(-0.4, taper=60)
 )
 
+# Add "WATCHY" text
+#top = (top.faces(">Z")
+#  .workplane(origin=(0, -p_screen_h/2.0 + 2.5, 0))
+#  .text("WATCHY", 4, 0.3, cut=False, combine=True, kind='bold', font='Sans')
+#)
+
 debug(top)
 
 pole_holes = (cq.Workplane("XY")
@@ -266,12 +273,16 @@ with_top_holes = (with_inset
   .cut(pole_holes) 
 )
 
-if True:
+if p_flipTop:
   top = (top
     .translate((-p_outerWidth - 1.0, 0, -(p_outerHeight+top_th)))
     .rotate((0,0,0),(0,1,0), 180)
 )
-  
+else:
+  top = (top
+    .translate((-p_outerWidth - 1.0, 0, -(p_outerHeight-pole_hole_depth)))
+  )
+
 result = (with_top_holes
   .union(top)
 )
