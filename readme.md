@@ -1,5 +1,5 @@
 # Case design for the Watchy open source watch
-Designed using [CadQuery](https://github.com/CadQuery/cadquery) by Gilad Dayagi.
+Designed by Gilad Dayagi using [CadQuery](https://github.com/CadQuery/cadquery).
 
 Includes a case body and top cover.  
 Use two screws to attach the fastener to the body.  
