@@ -20,4 +20,4 @@ Adjust the parameters at the top for your needs.
 You may want to experiment with different orientations and support settings.
 
 See photos folder for more photos.
-![Photo1](photos/photo1.jpg)
+![Photo1](photos/photo3.jpg)
