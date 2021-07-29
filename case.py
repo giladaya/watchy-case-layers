@@ -292,5 +292,5 @@ result = (with_top_holes
 
 #return the combined result
 show_object(result)
-cq.exporters.export(top, "boxy-top-only.stl")
-cq.exporters.export(result, "boxy-top.stl")
+cq.exporters.export(result, "watchy-layers.stl")
+#cq.exporters.export(top, "watchy-layers-top-only.stl")
