@@ -197,7 +197,7 @@ with_inset = with_side_holes.cut(pcb_inset)
 fastener_hole_point = (0, p_outerHeight * 0.75 - 0.2)
 poleCenters = [(0, pcb_h / 2.0 - pcb_y_to_slot - pcb_slot_h / 2.0), (0, -(pcb_h / 2.0 - pcb_y_to_slot - pcb_slot_h / 2.0))]
 screen_window_size = p_screen_w - 2.0 * p_screen_margin
-pole_hole_depth = p_outerHeight / 2.0
+pole_hole_depth = p_outerHeight / 2.0 - 0.5
 
 # basic shape
 top = (cq.Workplane("XY")
@@ -208,10 +208,11 @@ top = (cq.Workplane("XY")
   .fillet(pcb_radius)
 )  
 # poles
+pole_thickness = pcb_slot_h - 0.5
 top = (top.faces("<Z")
   .workplane(offset=0)
   .pushPoints(poleCenters)
-  .rect(p_fastener_width, p_thickness)
+  .rect(p_fastener_width, pole_thickness)
   .extrude(pole_hole_depth)
   .faces(">Y")
   .workplane(origin=(0, 0, 0), offset=0.0)
@@ -241,7 +242,7 @@ top = (top.faces(">Z")
     (0, pcb_inset_height/2.0, 0)
   ])
   .rect(p_strap_width ,5.0)
-  .cutBlind(-0.4, taper=60)
+  .cutBlind(-0.5, taper=60)
 )
 
 # Add "WATCHY" text
@@ -255,7 +256,7 @@ debug(top)
 pole_holes = (cq.Workplane("XY")
   .workplane(offset=p_outerHeight)
   .pushPoints(poleCenters)
-  .rect(p_fastener_width + p_tolerance, p_thickness + p_tolerance)
+  .rect(p_fastener_width + p_tolerance, pole_thickness + p_tolerance)
   .extrude(-(pole_hole_depth  + p_tolerance / 2.0))
 )
 
@@ -277,6 +278,8 @@ if p_flipTop:
   top = (top
     .translate((-p_outerWidth - 1.0, 0, -(p_outerHeight+top_th)))
     .rotate((0,0,0),(0,1,0), 180)
+    #.rotate((0,0,0),(0,1,0), 90)
+    #.translate((p_outerWidth/2.0, 0, (p_outerWidth/2.0)))
 )
 else:
   top = (top
