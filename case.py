@@ -3,7 +3,7 @@
 from watchy_sizes import *
 
 # path to Watchy model downloaded from https://github.com/sqfmi/watchy-hardware/raw/main/3D/Watchy.step
-watchy_model_path = '/home/gilad/sources/watchy/cases/Watchy.step'
+watchy_model_path = '/path/to/Watchy.step'
 show_watchy = False
 
 # New params
