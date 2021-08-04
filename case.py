@@ -26,7 +26,7 @@ p_screen_from_pcb_top = 4.0
 p_screen_h = 38.0
 p_screen_w = 32.0
 p_screen_margin = 1.5
-p_flipTop = True # should flip the top
+p_flipTop = False # should flip the top
 
 top_th = p_screen_th + p_top_sheet_th
 
@@ -44,12 +44,12 @@ p_sideRadius = pcb_radius #Radius for the curves around the sides of the box
 p_topAndBottomRadius =  p_outerHeight * 0.5 #Radius for the curves on the top and bottom edges of the box
 p_topAndBottomRadiusInner =  p_topAndBottomRadius
 
-p_screwpostID = 2.5 #Inner Diameter of the screw post holes, should be roughly screw diameter not including threads
+p_screwpostID = 1.5 #Inner Diameter of the screw post holes, should be roughly screw diameter not including threads
 
 p_boreDiameter = 4.5 #Diameter of the counterbore hole, if any
 p_boreDepth = 0.5 #Depth of the counterbore hole, if
-p_countersinkDiameter = 0.0 #Outer diameter of countersink.  Should roughly match the outer diameter of the screw head
-p_countersinkAngle = 90.0 #Countersink angle (complete angle between opposite sides, not from center to one side)
+p_countersinkDiameter = 2.5 #Outer diameter of countersink.  Should roughly match the outer diameter of the screw head
+p_countersinkAngle = 82.0 #Countersink angle (complete angle between opposite sides, not from center to one side)
 
 # Watchy model
 if show_watchy:
@@ -194,10 +194,8 @@ pcb_inset = (cq.Workplane("XY")
 with_inset = with_side_holes.cut(pcb_inset)
 
 # Top
-fastener_hole_point = (0, p_outerHeight * 0.75 - 0.2)
-poleCenters = [(0, pcb_h / 2.0 - pcb_y_to_slot - pcb_slot_h / 2.0), (0, -(pcb_h / 2.0 - pcb_y_to_slot - pcb_slot_h / 2.0))]
+fastener_hole_point = (0, p_outerHeight * 0.75 - 0.5)
 screen_window_size = p_screen_w - 2.0 * p_screen_margin
-pole_hole_depth = p_outerHeight / 2.0 - 0.5
 
 # basic shape
 top = (cq.Workplane("XY")
@@ -208,7 +206,10 @@ top = (cq.Workplane("XY")
   .fillet(pcb_radius)
 )  
 # poles
+poleCenters = [(0, pcb_h / 2.0 - pcb_y_to_slot - pcb_slot_h / 2.0), (0, -(pcb_h / 2.0 - pcb_y_to_slot - pcb_slot_h / 2.0))]
 pole_thickness = pcb_slot_h - 0.5
+pole_hole_depth = p_outerHeight / 2.0 + 0.5
+
 top = (top.faces("<Z")
   .workplane(offset=0)
   .pushPoints(poleCenters)
@@ -220,6 +221,7 @@ top = (top.faces("<Z")
   .hole(p_screwpostID, p_outerLength)
 )
 # screen holes
+top_fillets = 0.75
 top = (top.faces(">Z")
   # inset
   .workplane(origin=(0, pcb_inset_height/2.0 - p_screen_from_pcb_top - p_screen_h / 2.0, 0),offset=-p_top_sheet_th)
@@ -230,8 +232,24 @@ top = (top.faces(">Z")
   .workplane(origin=(0, pcb_inset_height/2.0 - p_screen_from_pcb_top - p_screen_margin - screen_window_size / 2.0, 0), offset=0)
   .rect(screen_window_size, screen_window_size + 2.0 * p_tolerance)
   .cutBlind(-p_screen_th)
-  .edges(">Z")
-  .fillet(0.5)
+  .faces(cq.selectors.BoxSelector(
+    (-p_screen_w/2.0, -p_screen_h/2.0, 0), 
+    (p_screen_w/2.0, p_screen_h/2.0, p_outerHeight*2.0),
+    boundingbox=True
+  ))
+  .edges("|Z")
+  .fillet(top_fillets)
+  .faces(">Z")
+  .edges(
+    cq.selectors.InverseSelector(
+      cq.selectors.BoxSelector(
+        (-p_screen_w/2.0, -p_screen_h/2.0, 0), 
+        (p_screen_w/2.0, p_screen_h/2.0, p_outerHeight*2.0),
+        boundingbox=True
+      )
+    )
+  )
+  .fillet(top_fillets)
 )
 
 # decorations
@@ -257,7 +275,8 @@ pole_holes = (cq.Workplane("XY")
   .workplane(offset=p_outerHeight)
   .pushPoints(poleCenters)
   .rect(p_fastener_width + p_tolerance, pole_thickness + p_tolerance)
-  .extrude(-(pole_hole_depth  + p_tolerance / 2.0))
+  #.extrude(-(pole_hole_depth  + p_tolerance / 2.0))
+  .extrude(-p_outerHeight)
 )
 
 with_top_holes = (with_inset
@@ -265,12 +284,14 @@ with_top_holes = (with_inset
   .workplane(origin=(0, 0, 0), offset=0.0)
   .pushPoints( [ fastener_hole_point])
   #.hole(p_screwpostID, p_outerLength)
-  .cboreHole(p_screwpostID, p_boreDiameter, p_boreDepth)
+  #.cboreHole(p_screwpostID, p_boreDiameter, p_boreDepth)
+  .cskHole(p_screwpostID, p_countersinkDiameter, p_countersinkAngle)
   .faces("|Y and <Y")
   .workplane(origin=(0, 0, 0), offset=0.0)
   .pushPoints( [ fastener_hole_point])
   #.hole(p_screwpostID, p_outerLength)
-  .cboreHole(p_screwpostID, p_boreDiameter, p_boreDepth)
+  #.cboreHole(p_screwpostID, p_boreDiameter, p_boreDepth)
+  .cskHole(p_screwpostID, p_countersinkDiameter, p_countersinkAngle)
   .cut(pole_holes) 
 )
 
@@ -293,4 +314,5 @@ result = (with_top_holes
 #return the combined result
 show_object(result)
 cq.exporters.export(result, "watchy-layers.stl")
-#cq.exporters.export(top, "watchy-layers-top-only.stl")
+cq.exporters.export(top, "watchy-layers-top-only.stl")
+cq.exporters.export(with_top_holes, "watchy-layers-body-only.stl")
