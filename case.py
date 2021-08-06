@@ -8,8 +8,8 @@ show_watchy = False
 
 # New params
 p_tolerance = 0.5 # Tolerance for pcb w / h
-p_ledge_h = pcb_y_to_slot + pcb_slot_h + 1.5 # top and bottom inner "ledge"
-p_strap_width = 24 + 0.5 # strap width inc. tolerance
+p_ledge_h = pcb_y_to_slot + pcb_slot_h + 2.0 # top and bottom inner "ledge"
+p_strap_width = 22 + 0.5 # strap width inc. tolerance
 p_strap_dia = 4.0 # diameter of strap edge
 p_tbar_space_height = p_strap_dia + 0.5 # space to cut in case for strap edge
 p_tbar_hole_r = 0.5 # Radius of t-bar pin
@@ -48,8 +48,8 @@ p_screwpostID = 1.5 #Inner Diameter of the screw post holes, should be roughly s
 
 p_boreDiameter = 4.5 #Diameter of the counterbore hole, if any
 p_boreDepth = 0.5 #Depth of the counterbore hole, if
-p_countersinkDiameter = 2.5 #Outer diameter of countersink.  Should roughly match the outer diameter of the screw head
-p_countersinkAngle = 82.0 #Countersink angle (complete angle between opposite sides, not from center to one side)
+p_countersinkDiameter = 2.6 #Outer diameter of countersink.  Should roughly match the outer diameter of the screw head
+p_countersinkAngle = 60.0 #Countersink angle (complete angle between opposite sides, not from center to one side)
 
 # Watchy model
 if show_watchy:
@@ -98,7 +98,7 @@ box = (box
 
 # Top strap hole
 tbar_hole_depth = 1.5
-strap_hole_y_offset = p_outerLength / 2.0 - p_strap_dia / 2.0 + 1.0
+strap_hole_y_offset = p_outerLength / 2.0 - p_strap_dia / 2.0
 tbar_top = (cq.Workplane("ZY")
   .workplane(
     origin=(0, strap_hole_y_offset, 0), 
@@ -106,7 +106,7 @@ tbar_top = (cq.Workplane("ZY")
   .circle(p_tbar_space_height)
   .extrude(p_strap_width)
   .workplane(
-    origin=(0, p_outerLength / 2.0 - p_topAndBottomRadius + p_strap_dia / 2.0 + 0.3, p_strap_dia / 2.0 + 0.1), 
+    origin=(0, p_outerLength / 2.0 - p_topAndBottomRadius + p_strap_dia / 2.0 - 0.4, p_strap_dia / 2.0), 
     offset=(-p_strap_width / 2.0 - tbar_hole_depth))
   .circle(p_tbar_hole_r)
   .extrude(p_strap_width + tbar_hole_depth * 2.0)
@@ -120,7 +120,7 @@ tbar_bottom = (cq.Workplane("ZY")
   .circle(p_tbar_space_height)
   .extrude(p_strap_width)
   .workplane(
-    origin=(0, -(p_outerLength / 2.0 - p_topAndBottomRadius + p_strap_dia / 2.0 + 0.3), p_strap_dia / 2.0 + 0.1), 
+    origin=(0, -(p_outerLength / 2.0 - p_topAndBottomRadius + p_strap_dia / 2.0 - 0.4), p_strap_dia / 2.0), 
     offset=(-p_strap_width / 2.0 - tbar_hole_depth))
   .circle(p_tbar_hole_r)
   .extrude(p_strap_width + tbar_hole_depth * 2.0)
