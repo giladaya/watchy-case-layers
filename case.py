@@ -17,7 +17,8 @@ p_under_pcb_depth = 8.0 # space for battery, etc.
 p_inset_depth = pcb_t # depth of inset for pcb
 p_flipFastener = True # should flip fastener (true for prod)
 p_pcb_wall_thickness = 0.0 # thickness of walls around pcb inset
-p_fastener_width = pcb_w * 0.5 # width of fasteners
+p_fastener_width = p_strap_width - p_tolerance # width of fasteners
+p_layer_th = 0.12
 
 # Cover params
 p_screen_th = 1.2 # thickness of screen (including adhesive tape)
@@ -93,7 +94,7 @@ box = oshell.cut(ishell)
 box = (box
   .faces(cq.NearestToPointSelector((0,0,p_thickness)))
   .workplane()
-  .text("GD", 5, -0.3, cut=True, kind='bold', font='Courier')
+  .text("//GD", 5, -3.0 * p_layer_th, cut=True, kind='bold', font='Courier')
 )
 
 # Top strap hole
@@ -193,8 +194,18 @@ pcb_inset = (cq.Workplane("XY")
 )
 with_inset = with_side_holes.cut(pcb_inset)
 
-# Top
-fastener_hole_point = (0, p_outerHeight * 0.75 - 0.5)
+# Top cover
+screw_holes = 1
+if screw_holes == 1:
+  fastener_hole_points = [(0, p_outerHeight * 0.75 - 0.5)]
+elif screw_holes == 2:
+  fastener_hole_points = [
+    (-p_fastener_width * 0.3, p_outerHeight * 0.75 - 0.5),
+    (p_fastener_width * 0.3, p_outerHeight * 0.75 - 0.5)
+  ]
+else:
+  raise ValueError("screw_holes must be either 1 or 2.")
+
 screen_window_size = p_screen_w - 2.0 * p_screen_margin
 
 # basic shape
@@ -217,7 +228,7 @@ top = (top.faces("<Z")
   .extrude(pole_hole_depth)
   .faces(">Y")
   .workplane(origin=(0, 0, 0), offset=0.0)
-  .pushPoints( [ fastener_hole_point])
+  .pushPoints( fastener_hole_points )
   .hole(p_screwpostID, p_outerLength)
 )
 # screen holes
@@ -239,6 +250,7 @@ top = (top.faces(">Z")
   ))
   .edges("|Z")
   .fillet(top_fillets)
+  # Circumference fillet
   .faces(">Z")
   .edges(
     cq.selectors.InverseSelector(
@@ -249,18 +261,19 @@ top = (top.faces(">Z")
       )
     )
   )
-  .fillet(top_fillets)
+  .fillet(1.0)
 )
 
 # decorations
 top = (top.faces(">Z")
   .workplane(origin=(0, 0, 0), offset=0)
   .pushPoints( [ 
-    (0, -pcb_inset_height/2.0, 0),
-    (0, pcb_inset_height/2.0, 0)
+    (0, -pcb_inset_height/2.0 + 3.0, 0),
+    (0, pcb_inset_height/2.0 - 3.0, 0)
   ])
-  .rect(p_strap_width ,5.0)
-  .cutBlind(-0.5, taper=60)
+  .rect(p_strap_width ,3.0)
+  .extrude(4.0 * p_layer_th, taper=60)
+  #.cutBlind(-0.5, taper=60)
 )
 
 # Add "WATCHY" text
@@ -282,13 +295,13 @@ pole_holes = (cq.Workplane("XY")
 with_top_holes = (with_inset
   .faces("|Y and >Y")
   .workplane(origin=(0, 0, 0), offset=0.0)
-  .pushPoints( [ fastener_hole_point])
+  .pushPoints( fastener_hole_points )
   #.hole(p_screwpostID, p_outerLength)
   #.cboreHole(p_screwpostID, p_boreDiameter, p_boreDepth)
   .cskHole(p_screwpostID, p_countersinkDiameter, p_countersinkAngle)
   .faces("|Y and <Y")
   .workplane(origin=(0, 0, 0), offset=0.0)
-  .pushPoints( [ fastener_hole_point])
+  .pushPoints( fastener_hole_points )
   #.hole(p_screwpostID, p_outerLength)
   #.cboreHole(p_screwpostID, p_boreDiameter, p_boreDepth)
   .cskHole(p_screwpostID, p_countersinkDiameter, p_countersinkAngle)
