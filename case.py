@@ -6,11 +6,28 @@ from watchy_sizes import *
 watchy_model_path = '/path/to/Watchy.step'
 show_watchy = False
 
+# ------------
+# Main params
+# ------------
+p_strap_width = 22 + 0.5 # strap width inc. tolerance
+p_strap_dia = 4.0 # diameter of strap edge
+p_layer_th = 0.12 # Thickness of print layer
+p_flipTop = False # should flip the top
+
+# Screws
+p_screw_holes = 1 #Screws on each side (1 or 2)
+p_screwpostID = 1.5 #Inner Diameter of the screw post holes, should be roughly screw diameter not including threads
+p_boreDiameter = 4.5 #Diameter of the counterbore hole, if any
+p_boreDepth = 0.5 #Depth of the counterbore hole, if
+p_countersinkDiameter = 2.6 #Outer diameter of countersink.  Should roughly match the outer diameter of the screw head
+p_countersinkAngle = 60.0 #Countersink angle (complete angle between opposite sides, not from center to one side)
+
+# ------------
+# Other params
+# ------------
 # New params
 p_tolerance = 0.5 # Tolerance for pcb w / h
 p_ledge_h = pcb_y_to_slot + pcb_slot_h + 2.0 # top and bottom inner "ledge"
-p_strap_width = 22 + 0.5 # strap width inc. tolerance
-p_strap_dia = 4.0 # diameter of strap edge
 p_tbar_space_height = p_strap_dia + 0.5 # space to cut in case for strap edge
 p_tbar_hole_r = 0.5 # Radius of t-bar pin
 p_under_pcb_depth = 8.0 # space for battery, etc.
@@ -18,7 +35,6 @@ p_inset_depth = pcb_t # depth of inset for pcb
 p_flipFastener = True # should flip fastener (true for prod)
 p_pcb_wall_thickness = 0.0 # thickness of walls around pcb inset
 p_fastener_width = p_strap_width - p_tolerance # width of fasteners
-p_layer_th = 0.12
 
 # Cover params
 p_screen_th = 1.2 # thickness of screen (including adhesive tape)
@@ -27,14 +43,13 @@ p_screen_from_pcb_top = 4.0
 p_screen_h = 38.0
 p_screen_w = 32.0
 p_screen_margin = 1.5
-p_flipTop = False # should flip the top
 
 top_th = p_screen_th + p_top_sheet_th
 
 pcb_inset_width = pcb_w + p_tolerance
 pcb_inset_height = pcb_h + p_tolerance
 
-#parameter definitions
+# orginal parameter definitions
 p_thickness =  1.0 #Thickness of the box walls
 
 p_outerWidth = pcb_inset_width + 2.0 * p_pcb_wall_thickness # Total outer width of box enclosure
@@ -45,14 +60,9 @@ p_sideRadius = pcb_radius #Radius for the curves around the sides of the box
 p_topAndBottomRadius =  p_outerHeight * 0.5 #Radius for the curves on the top and bottom edges of the box
 p_topAndBottomRadiusInner =  p_topAndBottomRadius
 
-p_screwpostID = 1.5 #Inner Diameter of the screw post holes, should be roughly screw diameter not including threads
-
-p_boreDiameter = 4.5 #Diameter of the counterbore hole, if any
-p_boreDepth = 0.5 #Depth of the counterbore hole, if
-p_countersinkDiameter = 2.6 #Outer diameter of countersink.  Should roughly match the outer diameter of the screw head
-p_countersinkAngle = 60.0 #Countersink angle (complete angle between opposite sides, not from center to one side)
-
-# Watchy model
+# ------------
+# Load Watchy model
+# ------------
 if show_watchy:
   watchy = cq.importers.importStep(watchy_model_path)
   watchy = (watchy
@@ -61,6 +71,9 @@ if show_watchy:
   )
   debug(watchy)
 
+# ------------
+# Create model
+# ------------
 #outer shell
 oshell = (cq.Workplane("XY")
   .rect(p_outerWidth, p_outerLength)
@@ -195,10 +208,9 @@ pcb_inset = (cq.Workplane("XY")
 with_inset = with_side_holes.cut(pcb_inset)
 
 # Top cover
-screw_holes = 1
-if screw_holes == 1:
+if p_screw_holes == 1:
   fastener_hole_points = [(0, p_outerHeight * 0.75 - 0.5)]
-elif screw_holes == 2:
+elif p_screw_holes == 2:
   fastener_hole_points = [
     (-p_fastener_width * 0.3, p_outerHeight * 0.75 - 0.5),
     (p_fastener_width * 0.3, p_outerHeight * 0.75 - 0.5)
