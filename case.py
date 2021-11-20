@@ -338,6 +338,6 @@ result = (with_top_holes
 
 #return the combined result
 show_object(result)
-cq.exporters.export(result, "watchy-layers.stl")
-cq.exporters.export(top, "watchy-layers-top-only.stl")
-cq.exporters.export(with_top_holes, "watchy-layers-body-only.stl")
+# cq.exporters.export(result, "STLs/watchy-layers.stl")
+cq.exporters.export(top, "STLs/watchy-layers-top.stl")
+cq.exporters.export(with_top_holes, "STLs/watchy-layers-body.stl")
